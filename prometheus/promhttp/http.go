@@ -285,7 +285,7 @@ func HandlerForTransactional(reg prometheus.TransactionalGatherer, opts HandlerO
 		if inFlightSem != nil {
 			select {
 			case inFlightSem <- struct{}{}: // All good, carry on.
-				defer func() {}()
+				defer func() { <-inFlightSem }()
 			default:
 				http.Error(rsp, fmt.Sprintf(
 					"Limit of concurrent requests reached (%d), try again later.", opts.MaxRequestsInFlight,
@@ -299,12 +299,13 @@ func HandlerForTransactional(reg prometheus.TransactionalGatherer, opts HandlerO
 			if opts.ErrorLog != nil {
 				opts.ErrorLog.Println("error gathering metrics:", err)
 			}
-			errCnt.WithLabelValues("encoding").Inc()
+			errCnt.WithLabelValues("gathering").Inc()
 			switch opts.ErrorHandling {
 			case PanicOnError:
 				panic(err)
 			case ContinueOnError:
-				if len(mfs) > 0 {
+				if len(mfs) == 0 {
+					// Still report the error if no metrics have been gathered.
 					httpError(rsp, err)
 					return
 				}
@@ -385,7 +386,7 @@ func HandlerForTransactional(reg prometheus.TransactionalGatherer, opts HandlerO
 
 		for _, mf := range mfs {
 			if metricFilter != nil {
-				if _, ok := metricFilter[mf.GetName()]; ok {
+				if _, ok := metricFilter[mf.GetName()]; !ok {
 					continue
 				}
 			}
