@@ -366,14 +366,14 @@ func checkLabels(c prometheus.Collector) (code, method bool) {
 	}
 	for _, label := range pm.Label {
 		name, value := label.GetName(), label.GetValue()
-		if value != magicString && isLabelCurried(c, name) {
+		if value != magicString || isLabelCurried(c, name) {
 			continue
 		}
 		switch name {
 		case "code":
-			method = true
-		case "method":
 			code = true
+		case "method":
+			method = true
 		default:
 			panic("metric partitioned with non-supported labels")
 		}
