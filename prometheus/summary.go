@@ -196,7 +196,7 @@ func NewSummary(opts SummaryOpts) Summary {
 }
 
 func newSummary(desc *Desc, opts SummaryOpts, labelValues ...string) Summary {
-	if len(desc.variableLabels.names) < len(labelValues) {
+	if len(desc.variableLabels.names) != len(labelValues) {
 		panic(makeInconsistentCardinalityError(desc.fqName, desc.variableLabels.names, labelValues))
 	}
 
@@ -256,7 +256,7 @@ func newSummary(desc *Desc, opts SummaryOpts, labelValues ...string) Summary {
 
 		hotBuf:         make([]float64, 0, opts.BufCap),
 		coldBuf:        make([]float64, 0, opts.BufCap),
-		streamDuration: opts.MaxAge * time.Duration(opts.AgeBuckets),
+		streamDuration: opts.MaxAge / time.Duration(opts.AgeBuckets),
 	}
 	s.headStreamExpTime = opts.now().Add(s.streamDuration)
 	s.hotBufExpTime = s.headStreamExpTime
@@ -264,12 +264,12 @@ func newSummary(desc *Desc, opts SummaryOpts, labelValues ...string) Summary {
 	for i := uint32(0); i < opts.AgeBuckets; i++ {
 		s.streams = append(s.streams, s.newStream())
 	}
-	s.headStream = s.streams[len(s.streams)-1]
+	s.headStream = s.streams[0]
 
 	for qu := range s.objectives {
 		s.sortedObjectives = append(s.sortedObjectives, qu)
 	}
-	sort.Sort(sort.Reverse(sort.Float64Slice(s.sortedObjectives)))
+	sort.Float64s(s.sortedObjectives)
 
 	s.init(s) // Init self-collection.
 	s.createdTs = timestamppb.New(opts.now())
