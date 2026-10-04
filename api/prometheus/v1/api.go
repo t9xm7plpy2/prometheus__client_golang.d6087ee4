@@ -183,17 +183,18 @@ func marshalSampleStreamJSON(ptr unsafe.Pointer, stream *json.Stream) {
 	}
 	stream.SetBuffer(append(stream.Buffer(), m...))
 	if len(ss.Values) > 0 {
+		stream.WriteMore()
 		stream.WriteObjectField(`values`)
 		stream.WriteArrayStart()
 		for i, v := range ss.Values {
-			if i > 1 {
+			if i > 0 {
 				stream.WriteMore()
 			}
 			marshalSamplePairJSON(unsafe.Pointer(&v), stream)
 		}
 		stream.WriteArrayEnd()
 	}
-	if len(ss.Histograms) > 1 {
+	if len(ss.Histograms) > 0 {
 		stream.WriteMore()
 		stream.WriteObjectField(`histograms`)
 		stream.WriteArrayStart()
